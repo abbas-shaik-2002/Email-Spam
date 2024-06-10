@@ -1,0 +1,30 @@
+import pandas as pd
+df = pd.read_csv('/content/drive/MyDrive/DataSets/spam_ham_dataset.csv')
+df.head()
+
+import nltk
+nltk.download('punkt')
+from nltk.tokenize import word_tokenize
+tokens = df['text'].apply(word_tokenize)
+import re
+clean_data = tokens.apply(lambda tokens:[str(word) for word in tokens if re.sub('[^a-bA-Z]','',word)])
+
+from sklearn.feature_extraction.text import CountVectorizer
+cv = CountVectorizer()
+converttostr = [' '.join(text) for text in clean_data]
+vector_matrix = cv.fit_transform(converttostr)
+vector_matrix.toarray()
+
+from sklearn.model_selection import train_test_split
+X = vector_matrix
+y = df['label_num']
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2,random_state=43)
+
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score
+mv = MultinomialNB()
+mv.fit(X_train,y_train)
+
+pred = mv.predict(X_test)
+accuracy = accuracy_score(y_test,pred)
+print(f"Accuracy of the Model is: {int(accuracy*100)}/100")
